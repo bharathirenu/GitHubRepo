@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -38,12 +39,14 @@ public class GithubRepoServiceImpl implements GithubRepoService {
 		};
 		return webClient.get()
 				.uri("/repos/{owner}/{repo}/branches", user, reponame)
+				
 				.retrieve()
 				.onStatus(HttpStatus::is4xxClientError, clientResponse ->{
-					logger.error("status:"+HttpStatus.METHOD_NOT_ALLOWED.value());
+					logger.error("Exception occured while processing request: getBranchesForRepo");
 					return Mono.error(new ServiceException("whyHasItHappened", clientResponse.rawStatusCode()));
 				})
 				.onStatus(HttpStatus::is5xxServerError, clientResponse ->{
+					logger.error("Exception occured while processing request: getBranchesForRepo");
 					return Mono.error(new ServiceException("whyHasItHappened", clientResponse.rawStatusCode()));
 				})
 				.bodyToMono(listParameterizedTypeReference).log();
@@ -56,10 +59,11 @@ public class GithubRepoServiceImpl implements GithubRepoService {
 				.uri("/users/{username}/repos", user)
 				.retrieve()
 				.onStatus(HttpStatus::is4xxClientError, clientResponse -> {
-					logger.error("status:" + HttpStatus.METHOD_NOT_ALLOWED.value());
+					logger.error("Exception occured while processing request: getAllReposByUser");
 					return Mono.error(new ServiceException("whyHasItHappened", clientResponse.rawStatusCode()));
 				})
 				.onStatus(HttpStatus::is5xxServerError, clientResponse -> {
+					logger.error("Exception occured while processing request: getAllReposByUser");
 					return Mono.error(new ServiceException("whyHasItHappened", clientResponse.rawStatusCode()));
 				})
 				.bodyToFlux(GithubRepoBean.class);

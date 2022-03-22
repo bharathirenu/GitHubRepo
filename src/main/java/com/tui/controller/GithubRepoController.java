@@ -35,11 +35,17 @@ public class GithubRepoController {
 		return repo;
 	}
 	
-	@ExceptionHandler(ServiceException.class)
+	@ExceptionHandler(WebClientResponseException.class)
 	public ResponseEntity<String> handleWebClientResponseException(WebClientResponseException ex) {
 		logger.error("Error from WebClient - Status {}, Body {}", ex.getRawStatusCode(), ex.getResponseBodyAsString(),
 				ex);
 		return ResponseEntity.status(ex.getRawStatusCode()).body("whyHasItHappened");
 	}
+	
+	@ExceptionHandler(ServiceException.class)
+	public ResponseEntity<String> handleServiceException(ServiceException ex) {
+		logger.error("Error from WebClient - Status {}, Body {}",ex.getStatusCode(),ex.getMessage());
+		return ResponseEntity.status(ex.getStatusCode()).body(ex.getMessage());
 
+}
 }

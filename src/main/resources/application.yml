@@ -9,4 +9,9 @@ api:
     
 server:
   port: 9090
-
+  
+springdoc:
+  api-docs:
+    groups:
+      enabled: true
+   

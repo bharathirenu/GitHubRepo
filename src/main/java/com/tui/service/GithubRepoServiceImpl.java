@@ -30,14 +30,7 @@ public class GithubRepoServiceImpl implements GithubRepoService {
 	@Autowired
 	private AppProperties appProperties;
 
-	/*
-	 * public Mono<List<Commit>> getCommitsList(final String branchName) {
-	 * ParameterizedTypeReference<List<Commit>> grandKidsList = new
-	 * ParameterizedTypeReference<List<Commit>>() { }; return this.webClient .get()
-	 * .uri("repos/{owner}/{repo}/commits" + branchName) .retrieve()
-	 * .bodyToMono(grandKidsList); }
-	 */
-
+	
 	private Mono<List<GithubBranchBean>> getBranchesForRepo(String reponame, String user) {
 
 		logger.info("Fetching all the branches for a repository  {}", reponame);
@@ -47,20 +40,29 @@ public class GithubRepoServiceImpl implements GithubRepoService {
 				.uri("/repos/{owner}/{repo}/branches", user, reponame)
 				.retrieve()
 				.onStatus(HttpStatus::is4xxClientError, clientResponse ->{
+					logger.error("status:"+HttpStatus.METHOD_NOT_ALLOWED.value());
 					return Mono.error(new ServiceException("whyHasItHappened", clientResponse.rawStatusCode()));
 				})
 				.onStatus(HttpStatus::is5xxServerError, clientResponse ->{
 					return Mono.error(new ServiceException("whyHasItHappened", clientResponse.rawStatusCode()));
 				})
-				 
-				 
 				.bodyToMono(listParameterizedTypeReference).log();
 
 	}
 
 	private Flux<GithubRepoBean> getAllReposByUser(String user) {
 		logger.info("Fetching all the repositories for  user {}", user);
-		return webClient.get().uri("/users/{username}/repos", user).retrieve().bodyToFlux(GithubRepoBean.class);
+		return webClient.get()
+				.uri("/users/{username}/repos", user)
+				.retrieve()
+				.onStatus(HttpStatus::is4xxClientError, clientResponse -> {
+					logger.error("status:" + HttpStatus.METHOD_NOT_ALLOWED.value());
+					return Mono.error(new ServiceException("whyHasItHappened", clientResponse.rawStatusCode()));
+				})
+				.onStatus(HttpStatus::is5xxServerError, clientResponse -> {
+					return Mono.error(new ServiceException("whyHasItHappened", clientResponse.rawStatusCode()));
+				})
+				.bodyToFlux(GithubRepoBean.class);
 	}
 
 	public Flux<GithubRepoBean> getReposWithBranchesForUser(String user) {

@@ -1,0 +1,12 @@
+spring:
+  application:
+     name: GitHubRepoApplication
+api:    
+  githup:
+    url: https://api.github.com
+    username:
+    token:
+    
+server:
+  port: 9090
+
